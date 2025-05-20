@@ -1,0 +1,11 @@
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\bin\Debug\net8.0\SagaPedidos.Domain.deps.json
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\bin\Debug\net8.0\SagaPedidos.Domain.dll
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\bin\Debug\net8.0\SagaPedidos.Domain.pdb
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.AssemblyInfoInputs.cache
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.AssemblyInfo.cs
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.dll
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\refint\SagaPedidos.Domain.dll
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.pdb
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\ref\SagaPedidos.Domain.dll
