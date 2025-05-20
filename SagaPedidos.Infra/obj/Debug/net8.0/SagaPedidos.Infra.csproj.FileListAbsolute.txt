@@ -13,3 +13,6 @@ C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\refint\SagaPedidos.Infra.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\SagaPedidos.Infra.pdb
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\ref\SagaPedidos.Infra.dll
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\bin\Debug\net8.0\SagaPedidos.Application.dll
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\bin\Debug\net8.0\SagaPedidos.Application.pdb
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\SagaPedidos.Infra.sourcelink.json

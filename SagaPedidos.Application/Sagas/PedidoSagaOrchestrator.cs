@@ -1,21 +1,21 @@
 using System;
 using SagaPedidos.Domain.Events;
 using SagaPedidos.Domain.Messages;
-using SagaPedidos.Infra.Messaging;
+using SagaPedidos.Domain.Messaging;
 
 namespace SagaPedidos.Application.Sagas
 {
-    /// Orquestrador do fluxo da saga de pedido
+    // Orquestrador do fluxo da saga de pedido
     public class PedidoSagaOrchestrator
     {
-        private readonly Publisher _publisher;
+        private readonly IPublisher _publisher;
 
-        public PedidoSagaOrchestrator(Publisher publisher)
+        public PedidoSagaOrchestrator(IPublisher publisher)
         {
             _publisher = publisher;
         }
 
-        /// Inicia o fluxo da saga quando um pedido é criado
+        // Inicia o fluxo da saga quando um pedido é criado
         public void IniciarSaga(PedidoCriadoEvent pedidoCriado)
         {
             Console.WriteLine($"Iniciando saga para pedido {pedidoCriado.PedidoId}");
@@ -34,7 +34,7 @@ namespace SagaPedidos.Application.Sagas
             _publisher.Publish(sagaMessage);
         }
         
-        /// Continua o fluxo da saga quando um pagamento é aprovado
+        // Continua o fluxo da saga quando um pagamento é aprovado
         public void ContinuarSagaAposPagamento(PagamentoAprovadoEvent pagamentoAprovado)
         {
             Console.WriteLine($"Pagamento aprovado para pedido {pagamentoAprovado.PedidoId}. Iniciando envio...");
@@ -52,7 +52,7 @@ namespace SagaPedidos.Application.Sagas
             _publisher.Publish(sagaMessage);
         }
         
-        /// Trata o caso de falha de pagamento
+        // Trata o caso de falha de pagamento
         public void TratarFalhaPagamento(PagamentoRecusadoEvent pagamentoRecusado)
         {
             Console.WriteLine($"Pagamento recusado para pedido {pagamentoRecusado.PedidoId}. Cancelando pedido...");
@@ -70,7 +70,7 @@ namespace SagaPedidos.Application.Sagas
             _publisher.Publish(sagaMessage);
         }
         
-        /// Finaliza a saga quando o envio é processado
+        // Finaliza a saga quando o envio é processado
         public void FinalizarSaga(EnvioProcessadoEvent envioProcessado)
         {
             Console.WriteLine($"Envio processado para pedido {envioProcessado.PedidoId}. Saga concluída com sucesso!");
@@ -79,7 +79,7 @@ namespace SagaPedidos.Application.Sagas
             // Aqui poderia notificar outras partes do sistema ou gerar relatórios
         }
         
-        /// Trata o caso de falha no envio
+        // Trata o caso de falha no envio
         public void TratarFalhaEnvio(EnvioFalhadoEvent envioFalhado)
         {
             Console.WriteLine($"Falha no envio para pedido {envioFalhado.PedidoId}. Iniciando compensação...");

@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using SagaPedidos.Application.EventHandlers;
 using SagaPedidos.Application.Interfaces;
 using SagaPedidos.Application.Sagas;
 using SagaPedidos.Application.Services;
 using SagaPedidos.Domain.Interfaces;
+using SagaPedidos.Domain.Messaging;
 using SagaPedidos.Infra;
 using SagaPedidos.Infra.Messaging;
 using SagaPedidos.Infra.Messaging.Subscribers;
@@ -35,11 +35,7 @@ namespace SagaPedidos.Presentation
                 // Configuração de serviços
                 var serviceProvider = ConfigureServices(configuration);
                 
-                // Configure o logger
-                var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<Program>();
-
-                logger.LogInformation("Configuração de serviços concluída com sucesso.");
+                Console.WriteLine("Configuração de serviços concluída com sucesso.");
                 
                 // Inicializa os subscribers (filas de mensagens)
                 InitializeSubscribers(serviceProvider);
@@ -93,11 +89,8 @@ namespace SagaPedidos.Presentation
                 new RabbitMQConnection(rabbitMQConnectionString));
 
             // Registra o Publisher
-            services.AddSingleton<Publisher>(provider =>
-            {
-                var connection = provider.GetRequiredService<RabbitMQConnection>();
-                return new Publisher(connection, "pedido_exchange");
-            });
+            services.AddSingleton<Publisher>();
+            services.AddSingleton<IPublisher>(provider => provider.GetRequiredService<Publisher>());
 
             // Registra o Orchestrator da Saga
             services.AddSingleton<PedidoSagaOrchestrator>();
@@ -132,20 +125,14 @@ namespace SagaPedidos.Presentation
             });
 
             // Construção do provedor de serviços
-            return services.BuildServiceProvider(new ServiceProviderOptions
-            {
-                ValidateOnBuild = true,
-                ValidateScopes = false
-            });
+            return services.BuildServiceProvider();
         }
 
         private static void InitializeSubscribers(ServiceProvider serviceProvider)
         {
-            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            
             try
             {
-                logger.LogInformation("Iniciando subscribers...");
+                Console.WriteLine("Iniciando subscribers...");
                 
                 var pedidoSubscriber = serviceProvider.GetRequiredService<PedidoSubscriber>();
                 var pagamentoSubscriber = serviceProvider.GetRequiredService<PagamentoSubscriber>();
@@ -155,11 +142,11 @@ namespace SagaPedidos.Presentation
                 pagamentoSubscriber.Subscribe();
                 envioSubscriber.Subscribe();
                 
-                logger.LogInformation("Todos os subscribers foram iniciados com sucesso.");
+                Console.WriteLine("Todos os subscribers foram iniciados com sucesso.");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Erro ao iniciar subscribers");
+                Console.WriteLine($"Erro ao iniciar subscribers: {ex.Message}");
                 throw;
             }
         }

@@ -1,0 +1,6 @@
+@SagaPedidos.Presentation_HostAddress = http://localhost:5072
+
+GET {{SagaPedidos.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

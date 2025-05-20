@@ -7,11 +7,10 @@ C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\bin\Debug\n
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\bin\Debug\net8.0\SagaPedidos.Application.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\bin\Debug\net8.0\SagaPedidos.Application.pdb
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\bin\Debug\net8.0\SagaPedidos.Domain.dll
-C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\bin\Debug\net8.0\SagaPedidos.Infra.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\bin\Debug\net8.0\SagaPedidos.Domain.pdb
-C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\bin\Debug\net8.0\SagaPedidos.Infra.pdb
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\obj\Debug\net8.0\SagaPedi.2555709D.Up2Date
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\obj\Debug\net8.0\SagaPedidos.Application.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\obj\Debug\net8.0\refint\SagaPedidos.Application.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\obj\Debug\net8.0\SagaPedidos.Application.pdb
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\obj\Debug\net8.0\ref\SagaPedidos.Application.dll
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Application\obj\Debug\net8.0\SagaPedidos.Application.sourcelink.json

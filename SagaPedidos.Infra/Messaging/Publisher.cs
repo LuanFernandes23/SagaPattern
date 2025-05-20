@@ -1,12 +1,13 @@
 ﻿using RabbitMQ.Client;
 using SagaPedidos.Domain.Messages;
+using SagaPedidos.Domain.Messaging;
 using System;
 using System.Text;
 using System.Text.Json;
 
 namespace SagaPedidos.Infra.Messaging
 {
-    public class Publisher : IDisposable
+    public class Publisher : IPublisher, IDisposable
     {
         private readonly RabbitMQConnection _connection;
         private readonly IModel _channel;

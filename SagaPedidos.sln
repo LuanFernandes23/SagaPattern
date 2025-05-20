@@ -17,13 +17,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SagaPedidos.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SagaPedidos.Infra", "SagaPedidos.Infra\SagaPedidos.Infra.csproj", "{D5597700-46CD-49B7-8B67-F9EDB60380CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SagaPedidos.Presentation", "SagaPedidos.Presentation\SagaPedidos.Presentation.csproj", "{B386A398-F772-4855-8543-A96F018B3439}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentação", "Documentação", "{BB7340F3-9827-433E-8398-14856E78623D}"
 	ProjectSection(SolutionItems) = preProject
 		documentacao-arquitetura.md = documentacao-arquitetura.md
 		planejanmento-apis.md = planejanmento-apis.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{380A7511-A354-6D7A-0CC0-8FA1F1BA7B6C}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SagaPedidos.Presentation", "SagaPedidos.Presentation\SagaPedidos.Presentation.csproj", "{71F31F13-042B-47FA-B11C-0B14A7FD5A92}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,10 +48,10 @@ Global
 		{D5597700-46CD-49B7-8B67-F9EDB60380CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5597700-46CD-49B7-8B67-F9EDB60380CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5597700-46CD-49B7-8B67-F9EDB60380CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B386A398-F772-4855-8543-A96F018B3439}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B386A398-F772-4855-8543-A96F018B3439}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B386A398-F772-4855-8543-A96F018B3439}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B386A398-F772-4855-8543-A96F018B3439}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71F31F13-042B-47FA-B11C-0B14A7FD5A92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71F31F13-042B-47FA-B11C-0B14A7FD5A92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71F31F13-042B-47FA-B11C-0B14A7FD5A92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71F31F13-042B-47FA-B11C-0B14A7FD5A92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,7 +60,7 @@ Global
 		{C0A2B8C2-0C03-4232-86F9-AAC94F487481} = {28255C47-4BDB-4309-8FC5-2D34924FA5CE}
 		{FB3A4386-BA7D-4957-9F7B-08E1A071A953} = {3BB6B066-C822-4FF4-9E24-DAB5BA206C24}
 		{D5597700-46CD-49B7-8B67-F9EDB60380CC} = {85208A67-855D-4D71-9D26-AD54FCA6CA91}
-		{B386A398-F772-4855-8543-A96F018B3439} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{71F31F13-042B-47FA-B11C-0B14A7FD5A92} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5E150A34-B2CF-4354-AC87-D0867E367DE9}
