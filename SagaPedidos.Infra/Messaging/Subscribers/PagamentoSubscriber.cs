@@ -20,17 +20,18 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
         private readonly Random _random = new Random();
 
         public PagamentoSubscriber(
-            RabbitMQConnection connection, 
+            RabbitMQConnection connection,
             IPagamentoService pagamentoService,
             Publisher publisher,
             PedidoSagaOrchestrator sagaOrchestrator,
-            string exchangeName = "pedido_exchange",
-            string queueName = "pagamento_queue") 
+            string exchangeName = "saga-pedidos",
+            string queueName = "pagamento_queue")
             : base(connection, exchangeName, queueName)
         {
-            _pagamentoService = pagamentoService;
-            _publisher = publisher;
-            _sagaOrchestrator = sagaOrchestrator;
+            _pagamentoService = pagamentoService ?? throw new ArgumentNullException(nameof(pagamentoService));
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            _sagaOrchestrator = sagaOrchestrator ?? throw new ArgumentNullException(nameof(sagaOrchestrator));
+            Console.WriteLine($"PagamentoSubscriber inicializado para exchange '{exchangeName}' e fila '{queueName}'");
         }
 
         protected override async Task ProcessMessageAsync(SagaMessage message)
@@ -42,13 +43,13 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 case "ProcessarPagamento":
                     await ProcessarPagamento(message);
                     break;
-                
+
                 case "EstornarPagamento":
                     await EstornarPagamento(message);
                     break;
-                
+
                 default:
-                    Console.WriteLine($"Tipo de mensagem não tratado: {message.Type}");
+                    Console.WriteLine($"Tipo de mensagem não tratado pelo PagamentoSubscriber: {message.Type}");
                     break;
             }
         }
@@ -63,7 +64,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 if (evento != null)
                 {
                     Console.WriteLine($"Processando pagamento para pedido {evento.PedidoId}. Valor: {evento.Valor}");
-                    
+
                     var dto = new ProcessarPagamentoDto
                     {
                         PedidoId = evento.PedidoId,
@@ -73,12 +74,12 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
 
                     // Processa o pagamento
                     var transacaoId = await _pagamentoService.ProcessarPagamentoAsync(dto);
-                    
+
                     // Simulação: 80% de chance de aprovação do pagamento
                     if (_random.Next(100) < 80)
                     {
                         Console.WriteLine($"Pagamento do pedido {evento.PedidoId} aprovado. Transação: {transacaoId}");
-                        
+
                         // Pagamento aprovado
                         var aprovadoEvent = new PagamentoAprovadoEvent(evento.PedidoId);
                         _sagaOrchestrator.ContinuarSagaAposPagamento(aprovadoEvent);
@@ -86,7 +87,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                     else
                     {
                         Console.WriteLine($"Pagamento do pedido {evento.PedidoId} recusado");
-                        
+
                         // Pagamento recusado
                         var recusadoEvent = new PagamentoRecusadoEvent(evento.PedidoId, "Pagamento recusado pela operadora do cartão");
                         _sagaOrchestrator.TratarFalhaPagamento(recusadoEvent);
@@ -96,14 +97,15 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao processar pagamento: {ex.Message}");
-                
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
                 // Em caso de erro, notifica o orquestrador para tratar a falha
                 if (message.Headers.TryGetValue("PedidoId", out var pedidoIdStr) && int.TryParse(pedidoIdStr, out var pedidoId))
                 {
                     var recusadoEvent = new PagamentoRecusadoEvent(pedidoId, $"Erro ao processar pagamento: {ex.Message}");
                     _sagaOrchestrator.TratarFalhaPagamento(recusadoEvent);
                 }
-                
+
                 throw;
             }
         }
@@ -142,6 +144,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao estornar pagamento: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }

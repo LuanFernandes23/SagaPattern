@@ -1,7 +1,7 @@
 using System;
 using SagaPedidos.Domain.Events;
+using SagaPedidos.Domain.Interfaces;
 using SagaPedidos.Domain.Messages;
-using SagaPedidos.Domain.Messaging;
 
 namespace SagaPedidos.Application.Sagas
 {

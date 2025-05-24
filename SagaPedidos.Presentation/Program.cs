@@ -6,7 +6,6 @@ using SagaPedidos.Application.Interfaces;
 using SagaPedidos.Application.Sagas;
 using SagaPedidos.Application.Services;
 using SagaPedidos.Domain.Interfaces;
-using SagaPedidos.Domain.Messaging;
 using SagaPedidos.Infra;
 using SagaPedidos.Infra.Messaging;
 using SagaPedidos.Infra.Messaging.Subscribers;
@@ -26,31 +25,34 @@ namespace SagaPedidos.Presentation
 
             try
             {
-                // Configuração - versão simplificada
+                // Carrega configurações
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                     .Build();
 
-                // Configuração de serviços
+                // Teste rápido de conexão antes de iniciar toda a aplicação
+                var connectionString = configuration["RabbitMQ:ConnectionString"];
+                Console.WriteLine($"Testando conexão com RabbitMQ: {connectionString}");
+
+                // Configura DI
                 var serviceProvider = ConfigureServices(configuration);
-                
                 Console.WriteLine("Configuração de serviços concluída com sucesso.");
-                
-                // Inicializa os subscribers (filas de mensagens)
+
+                // Inicializa os subscribers
                 InitializeSubscribers(serviceProvider);
-                
-                // Mantém o programa em execução até que seja interrompido manualmente
+
                 Console.WriteLine("Aplicação iniciada com sucesso! Pressione Ctrl+C para encerrar.");
-                
-                // Aguardar sinal de cancelamento
-                var cancellationTokenSource = new CancellationTokenSource();
-                Console.CancelKeyPress += (sender, e) => {
+
+                var cts = new CancellationTokenSource();
+                Console.CancelKeyPress += (s, e) =>
+                {
                     e.Cancel = true;
-                    cancellationTokenSource.Cancel();
+                    cts.Cancel();
                 };
-                
-                await Task.Delay(Timeout.Infinite, cancellationTokenSource.Token).ContinueWith(t => { });
+
+                await Task.Delay(Timeout.Infinite, cts.Token)
+                          .ContinueWith(t => { });
             }
             catch (TaskCanceledException)
             {
@@ -59,7 +61,17 @@ namespace SagaPedidos.Presentation
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro durante a execução da aplicação: {ex.Message}");
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner Exception Stack Trace: {ex.InnerException.StackTrace}");
+                }
+            }
+            finally
+            {
+                Console.WriteLine("Pressione qualquer tecla para sair...");
+                Console.ReadKey();
             }
         }
 
@@ -67,64 +79,71 @@ namespace SagaPedidos.Presentation
         {
             var services = new ServiceCollection();
 
-            // Configuração do DbContext
+            // Injetar a configuração diretamente
+            services.AddSingleton<IConfiguration>(configuration);
+
+            // DbContext
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            // Registra os repositórios
+            // Repositórios
             services.AddScoped<IPedidoRepository, PedidoRepository>();
             services.AddScoped<IPagamentoRepository, PagamentoRepository>();
             services.AddScoped<IEnvioRepository, EnvioRepository>();
 
-            // Registra os serviços de domínio
+            // Serviços de domínio
             services.AddScoped<IPedidoService, PedidoService>();
             services.AddScoped<IPagamentoService, PagamentoService>();
             services.AddScoped<IEnvioService, EnvioService>();
 
-            // Configuração do RabbitMQ
-            var rabbitMQConnectionString = configuration["RabbitMQ:ConnectionString"];
-            Console.WriteLine($"String de conexão RabbitMQ: {rabbitMQConnectionString}");
+            // RabbitMQ
+            var rabbitConnStr = configuration["RabbitMQ:ConnectionString"];
+            var rabbitExchange = configuration["RabbitMQ:ExchangeName"];
+            Console.WriteLine($"String de conexão RabbitMQ: {rabbitConnStr}");
+            Console.WriteLine($"Exchange RabbitMQ: {rabbitExchange}");
 
-            services.AddSingleton<RabbitMQConnection>(provider =>
-                new RabbitMQConnection(rabbitMQConnectionString));
+            services.AddSingleton<RabbitMQConnection>(sp =>
+                new RabbitMQConnection(rabbitConnStr));
 
-            // Registra o Publisher
-            services.AddSingleton<Publisher>();
-            services.AddSingleton<IPublisher>(provider => provider.GetRequiredService<Publisher>());
+            // Publisher (injeção do nome da exchange)
+            services.AddSingleton<Publisher>(sp =>
+            {
+                var conn = sp.GetRequiredService<RabbitMQConnection>();
+                return new Publisher(conn, rabbitExchange);
+            });
+            services.AddSingleton<IPublisher>(sp =>
+                sp.GetRequiredService<Publisher>());
 
-            // Registra o Orchestrator da Saga
+            // Orchestrator da Saga e Handlers
             services.AddSingleton<PedidoSagaOrchestrator>();
-
-            // Registra o Handler para iniciar a Saga
             services.AddSingleton<PedidoCriadoHandler>();
 
-            // Registra os Subscribers
-            services.AddSingleton<PedidoSubscriber>(provider =>
+            // Subscribers - agora com o nome correto da exchange
+            services.AddSingleton<PedidoSubscriber>(sp =>
             {
-                var connection = provider.GetRequiredService<RabbitMQConnection>();
-                var pedidoService = provider.GetRequiredService<IPedidoService>();
-                var publisher = provider.GetRequiredService<Publisher>();
-                return new PedidoSubscriber(connection, pedidoService, publisher);
+                var conn = sp.GetRequiredService<RabbitMQConnection>();
+                var pedidoSrv = sp.GetRequiredService<IPedidoService>();
+                var publisher = sp.GetRequiredService<Publisher>();
+                return new PedidoSubscriber(conn, pedidoSrv, publisher, rabbitExchange, "pedido_queue");
             });
 
-            services.AddSingleton<PagamentoSubscriber>(provider =>
+            services.AddSingleton<PagamentoSubscriber>(sp =>
             {
-                var connection = provider.GetRequiredService<RabbitMQConnection>();
-                var pagamentoService = provider.GetRequiredService<IPagamentoService>();
-                var publisher = provider.GetRequiredService<Publisher>();
-                var orchestrator = provider.GetRequiredService<PedidoSagaOrchestrator>();
-                return new PagamentoSubscriber(connection, pagamentoService, publisher, orchestrator);
+                var conn = sp.GetRequiredService<RabbitMQConnection>();
+                var pagamentoSrv = sp.GetRequiredService<IPagamentoService>();
+                var publisher = sp.GetRequiredService<Publisher>();
+                var orchestrator = sp.GetRequiredService<PedidoSagaOrchestrator>();
+                return new PagamentoSubscriber(conn, pagamentoSrv, publisher, orchestrator, rabbitExchange, "pagamento_queue");
             });
 
-            services.AddSingleton<EnvioSubscriber>(provider =>
+            services.AddSingleton<EnvioSubscriber>(sp =>
             {
-                var connection = provider.GetRequiredService<RabbitMQConnection>();
-                var envioService = provider.GetRequiredService<IEnvioService>();
-                var orchestrator = provider.GetRequiredService<PedidoSagaOrchestrator>();
-                return new EnvioSubscriber(connection, envioService, orchestrator);
+                var conn = sp.GetRequiredService<RabbitMQConnection>();
+                var envioSrv = sp.GetRequiredService<IEnvioService>();
+                var orchestrator = sp.GetRequiredService<PedidoSagaOrchestrator>();
+                return new EnvioSubscriber(conn, envioSrv, orchestrator, rabbitExchange, "envio_queue");
             });
 
-            // Construção do provedor de serviços
             return services.BuildServiceProvider();
         }
 
@@ -133,20 +152,32 @@ namespace SagaPedidos.Presentation
             try
             {
                 Console.WriteLine("Iniciando subscribers...");
-                
-                var pedidoSubscriber = serviceProvider.GetRequiredService<PedidoSubscriber>();
-                var pagamentoSubscriber = serviceProvider.GetRequiredService<PagamentoSubscriber>();
-                var envioSubscriber = serviceProvider.GetRequiredService<EnvioSubscriber>();
-                
-                pedidoSubscriber.Subscribe();
-                pagamentoSubscriber.Subscribe();
-                envioSubscriber.Subscribe();
-                
+
+                // Obtém as configurações do appsettings.json
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                var exchangeName = configuration["RabbitMQ:ExchangeName"];
+
+                Console.WriteLine($"Exchange configurada: {exchangeName}");
+
+                var pedidoSub = serviceProvider.GetRequiredService<PedidoSubscriber>();
+                var pagamentoSub = serviceProvider.GetRequiredService<PagamentoSubscriber>();
+                var envioSub = serviceProvider.GetRequiredService<EnvioSubscriber>();
+
+                pedidoSub.Subscribe();
+                Console.WriteLine("Subscriber de Pedido iniciado com sucesso");
+
+                pagamentoSub.Subscribe();
+                Console.WriteLine("Subscriber de Pagamento iniciado com sucesso");
+
+                envioSub.Subscribe();
+                Console.WriteLine("Subscriber de Envio iniciado com sucesso");
+
                 Console.WriteLine("Todos os subscribers foram iniciados com sucesso.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao iniciar subscribers: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }

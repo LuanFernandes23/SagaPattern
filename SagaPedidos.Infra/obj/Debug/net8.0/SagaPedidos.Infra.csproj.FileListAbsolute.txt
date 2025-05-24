@@ -16,3 +16,6 @@ C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\bin\Debug\net8.0\SagaPedidos.Application.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\bin\Debug\net8.0\SagaPedidos.Application.pdb
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\SagaPedidos.Infra.sourcelink.json
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\bin\Debug\net8.0\SagaPedidos.Infra.runtimeconfig.json
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\obj\Debug\net8.0\SagaPedidos.Infra.genruntimeconfig.cache
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Infra\bin\Debug\net8.0\appsettings.json

@@ -12,5 +12,64 @@ namespace SagaPedidos.Infra
         public DbSet<Envio> Envios { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<Endereco> Enderecos { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Configurar entidade Pedido
+            modelBuilder.Entity<Pedido>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.EnderecoEntrega).HasColumnName("EnderecoEntregaStr");
+                entity.Property(p => p.ValorTotal).HasColumnType("decimal(18,2)");
+
+                // Configurar relacionamento com Endereco (opcional)
+                entity.HasOne(p => p.Endereco).WithMany().IsRequired(false);
+
+                // Configurar relacionamento com ItemPedido
+                entity.HasMany(p => p.Itens)
+                      .WithOne()
+                      .HasForeignKey("PedidoId")
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configurar entidade Envio
+            modelBuilder.Entity<Envio>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.EnderecoEntrega).HasColumnName("EnderecoEntregaStr");
+
+                // Configurar relacionamento com Endereco (opcional)
+                entity.HasOne(e => e.Endereco).WithMany().IsRequired(false);
+            });
+
+            // Configurar entidade Pagamento
+            modelBuilder.Entity<Pagamento>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Valor).HasColumnType("decimal(18,2)");
+            });
+
+            // Configurar entidade ItemPedido
+            modelBuilder.Entity<ItemPedido>(entity =>
+            {
+                entity.HasKey(i => i.Id);
+                entity.Property(i => i.PrecoUnitario).HasColumnType("decimal(18,2)");
+            });
+
+            // Configurar entidade Cliente
+            modelBuilder.Entity<Cliente>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+            });
+
+            // Configurar entidade Endereco
+            modelBuilder.Entity<Endereco>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+        }
     }
 }

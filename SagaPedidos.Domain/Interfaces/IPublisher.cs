@@ -1,6 +1,6 @@
 using SagaPedidos.Domain.Messages;
 
-namespace SagaPedidos.Domain.Messaging
+namespace SagaPedidos.Domain.Interfaces
 {
     // Interface para publicação de mensagens
     public interface IPublisher

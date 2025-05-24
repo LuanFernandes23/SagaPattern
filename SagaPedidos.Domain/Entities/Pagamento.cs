@@ -13,10 +13,13 @@ namespace SagaPedidos.Domain.Entities
         public DateTime DataProcessamento { get; private set; }
         public string MotivoFalha { get; private set; }
 
+        // Construtor para EF Core
+        protected Pagamento() { }
+
         // Construtor
-        public Pagamento(Pedido pedidoId, decimal valor, string formaPagamento)
+        public Pagamento(Pedido pedido, decimal valor, string formaPagamento)
         {
-            PedidoId = pedidoId.Id;
+            PedidoId = pedido.Id;
             Valor = valor;
             FormaPagamento = formaPagamento;
             Status = StatusPagamento.Pendente;

@@ -9,8 +9,9 @@ using SagaPedidos.Domain.Messages;
 
 namespace SagaPedidos.Infra.Messaging.Subscribers
 {
-    // Subscriber que processa mensagens relacionadas a Envios
-
+    /// <summary>
+    /// Subscriber que processa mensagens relacionadas a Envios
+    /// </summary>
     public class EnvioSubscriber : Subscriber
     {
         private readonly IEnvioService _envioService;
@@ -18,15 +19,16 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
         private readonly Random _random = new Random();
 
         public EnvioSubscriber(
-            RabbitMQConnection connection, 
+            RabbitMQConnection connection,
             IEnvioService envioService,
             PedidoSagaOrchestrator sagaOrchestrator,
-            string exchangeName = "pedido_exchange",
-            string queueName = "envio_queue") 
+            string exchangeName = "saga-pedidos",
+            string queueName = "envio_queue")
             : base(connection, exchangeName, queueName)
         {
-            _envioService = envioService;
-            _sagaOrchestrator = sagaOrchestrator;
+            _envioService = envioService ?? throw new ArgumentNullException(nameof(envioService));
+            _sagaOrchestrator = sagaOrchestrator ?? throw new ArgumentNullException(nameof(sagaOrchestrator));
+            Console.WriteLine($"EnvioSubscriber inicializado para exchange '{exchangeName}' e fila '{queueName}'");
         }
 
         protected override async Task ProcessMessageAsync(SagaMessage message)
@@ -38,9 +40,9 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 case "ProcessarEnvio":
                     await ProcessarEnvio(message);
                     break;
-                
+
                 default:
-                    Console.WriteLine($"Tipo de mensagem não tratado: {message.Type}");
+                    Console.WriteLine($"Tipo de mensagem não tratado pelo EnvioSubscriber: {message.Type}");
                     break;
             }
         }
@@ -55,16 +57,16 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 if (evento != null)
                 {
                     Console.WriteLine($"Processando envio para pedido {evento.PedidoId}");
-                    
-                    // Simulando um endereço para o DTO
-                    var enderecoPartes = evento.EnderecoEntrega.Split(',');
+
+                    // Converter a string de endereço para o objeto EnderecoDto
+                    var enderecoPartes = evento.EnderecoEntrega.Split(',', 3);
                     var endereco = new EnderecoDto
                     {
-                        Rua = enderecoPartes.Length > 0 ? enderecoPartes[0] : "Rua Exemplo",
-                        Numero = enderecoPartes.Length > 1 ? enderecoPartes[1] : "123",
-                        Cidade = enderecoPartes.Length > 2 ? enderecoPartes[2] : "São Paulo"
+                        Rua = enderecoPartes.Length > 0 ? enderecoPartes[0].Trim() : "Rua Exemplo",
+                        Numero = enderecoPartes.Length > 1 ? enderecoPartes[1].Trim() : "123",
+                        Cidade = enderecoPartes.Length > 2 ? enderecoPartes[2].Trim() : "São Paulo"
                     };
-                    
+
                     var dto = new ProcessarEnvioDto
                     {
                         PedidoId = evento.PedidoId,
@@ -76,9 +78,9 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                     {
                         // Processa o envio
                         var envioId = await _envioService.ProcessarEnvioAsync(dto);
-                        
+
                         Console.WriteLine($"Envio do pedido {evento.PedidoId} processado com sucesso. Envio ID: {envioId}");
-                        
+
                         // Notifica o orquestrador que o envio foi processado
                         var processadoEvent = new EnvioProcessadoEvent(envioId, evento.PedidoId);
                         _sagaOrchestrator.FinalizarSaga(processadoEvent);
@@ -86,7 +88,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                     else
                     {
                         Console.WriteLine($"Falha ao processar envio do pedido {evento.PedidoId}");
-                        
+
                         // Notifica o orquestrador sobre a falha
                         var falhadoEvent = new EnvioFalhadoEvent(evento.PedidoId, "Falha ao processar envio");
                         _sagaOrchestrator.TratarFalhaEnvio(falhadoEvent);
@@ -96,14 +98,15 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao processar envio: {ex.Message}");
-                
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
                 // Em caso de erro, notifica o orquestrador para tratar a falha
                 if (message.Headers.TryGetValue("PedidoId", out var pedidoIdStr) && int.TryParse(pedidoIdStr, out var pedidoId))
                 {
                     var falhadoEvent = new EnvioFalhadoEvent(pedidoId, $"Erro ao processar envio: {ex.Message}");
                     _sagaOrchestrator.TratarFalhaEnvio(falhadoEvent);
                 }
-                
+
                 throw;
             }
         }

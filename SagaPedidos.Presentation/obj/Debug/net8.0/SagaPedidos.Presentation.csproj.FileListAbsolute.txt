@@ -76,10 +76,10 @@ C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\SagaPedi.7DF406D5.Up2Date
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\SagaPedidos.Presentation.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\refint\SagaPedidos.Presentation.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\SagaPedidos.Presentation.pdb
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\SagaPedidos.Presentation.genruntimeconfig.cache
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\ref\SagaPedidos.Presentation.dll
+C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Presentation\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

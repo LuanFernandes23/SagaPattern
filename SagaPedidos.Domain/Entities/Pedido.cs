@@ -10,15 +10,32 @@ namespace SagaPedidos.Domain.Entities
         public DateTime DataCriacao { get; private set; }
         public StatusPedido Status { get; private set; }
         public decimal ValorTotal { get; private set; }
-        public string EnderecoEntrega { get; private set; }
+        public Endereco Endereco { get; private set; }
+        public string EnderecoEntrega { get; private set; } // Mantido para compatibilidade
         public List<ItemPedido> Itens { get; private set; }
         public string MotivoFalha { get; private set; }
 
-        // Construtor 
-        public Pedido(Cliente clienteId, string enderecoEntrega)
+        // Construtor para EF Core
+        protected Pedido() { }
+
+        // Construtor recebendo string de endereço
+        public Pedido(Cliente cliente, string enderecoEntrega)
         {
-            ClienteId = clienteId.Id;
+            ClienteId = cliente.Id;
             EnderecoEntrega = enderecoEntrega;
+            Endereco = Endereco.FromString(enderecoEntrega);
+            DataCriacao = DateTime.UtcNow;
+            Status = StatusPedido.Criado;
+            Itens = new List<ItemPedido>();
+            ValorTotal = 0;
+        }
+
+        // Construtor recebendo objeto Endereco
+        public Pedido(Cliente cliente, Endereco endereco)
+        {
+            ClienteId = cliente.Id;
+            Endereco = endereco;
+            EnderecoEntrega = endereco.ToString();
             DataCriacao = DateTime.UtcNow;
             Status = StatusPedido.Criado;
             Itens = new List<ItemPedido>();
@@ -65,5 +82,4 @@ namespace SagaPedidos.Domain.Entities
         Entregue,
         Cancelado
     }
-
 }

@@ -21,31 +21,59 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _exchangeName = exchangeName ?? throw new ArgumentNullException(nameof(exchangeName));
             _queueName = queueName ?? throw new ArgumentNullException(nameof(queueName));
-            _channel = _connection.CreateModel();
-            
-            SetupInfrastructure();
+
+            Console.WriteLine($"Inicializando subscriber para exchange '{_exchangeName}' e fila '{_queueName}'...");
+
+            try
+            {
+                _channel = _connection.CreateModel();
+                SetupInfrastructure();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao inicializar subscriber: {ex.Message}");
+                throw;
+            }
         }
 
         private void SetupInfrastructure()
         {
-            _channel.QueueDeclare(
-                queue: _queueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false);
+            Console.WriteLine("Configurando infraestrutura de mensageria...");
 
-            _channel.ExchangeDeclare(
-                exchange: _exchangeName,
-                type: ExchangeType.Fanout,
-                durable: true,
-                autoDelete: false);
+            try
+            {
+                // Declara a exchange
+                Console.WriteLine($"Declarando exchange '{_exchangeName}'...");
+                _channel.ExchangeDeclare(
+                    exchange: _exchangeName,
+                    type: ExchangeType.Fanout,
+                    durable: true,
+                    autoDelete: false);
 
-            _channel.QueueBind(
-                queue: _queueName,
-                exchange: _exchangeName,
-                routingKey: "");
-            
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+                // Declara a fila
+                Console.WriteLine($"Declarando fila '{_queueName}'...");
+                _channel.QueueDeclare(
+                    queue: _queueName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false);
+
+                // Liga a fila à exchange
+                Console.WriteLine($"Bindando fila '{_queueName}' à exchange '{_exchangeName}'...");
+                _channel.QueueBind(
+                    queue: _queueName,
+                    exchange: _exchangeName,
+                    routingKey: "");
+
+                _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+
+                Console.WriteLine("Infraestrutura configurada com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao configurar infraestrutura: {ex.Message}");
+                throw;
+            }
         }
 
         public void Subscribe()
@@ -53,32 +81,47 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             if (_disposed)
                 throw new ObjectDisposedException(nameof(Subscriber));
 
-            var consumer = new EventingBasicConsumer(_channel);
-            
-            consumer.Received += async (model, ea) =>
+            try
             {
-                try
+                Console.WriteLine($"Inicializando consumidor para fila '{_queueName}'...");
+
+                var consumer = new EventingBasicConsumer(_channel);
+
+                consumer.Received += async (model, ea) =>
                 {
-                    var body = ea.Body.ToArray();
-                    var messageContent = Encoding.UTF8.GetString(body);
-                    var message = JsonSerializer.Deserialize<SagaMessage>(messageContent);
+                    try
+                    {
+                        var body = ea.Body.ToArray();
+                        var messageContent = Encoding.UTF8.GetString(body);
+                        Console.WriteLine($"Mensagem recebida na fila '{_queueName}': {messageContent}");
 
-                    await ProcessMessageAsync(message);
+                        var message = JsonSerializer.Deserialize<SagaMessage>(messageContent);
 
-                    _channel.BasicAck(ea.DeliveryTag, multiple: false);
-                }
-                catch (Exception ex)
-                {
-                    // Em caso de falha, rejeitar a mensagem e possivelmente enfileirá-la novamente
-                    _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
-                    Console.WriteLine($"Error processing message: {ex.Message}");
-                }
-            };
+                        await ProcessMessageAsync(message);
 
-            _channel.BasicConsume(
-                queue: _queueName,
-                autoAck: false,
-                consumer: consumer);
+                        _channel.BasicAck(ea.DeliveryTag, multiple: false);
+                        Console.WriteLine("Processamento concluído, confirmação enviada.");
+                    }
+                    catch (Exception ex)
+                    {
+                        // Em caso de falha, rejeitar a mensagem e possivelmente enfileirá-la novamente
+                        _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
+                        Console.WriteLine($"Erro ao processar mensagem: {ex.Message}");
+                    }
+                };
+
+                _channel.BasicConsume(
+                    queue: _queueName,
+                    autoAck: false,
+                    consumer: consumer);
+
+                Console.WriteLine($"Consumidor configurado com sucesso para a fila '{_queueName}'");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao configurar subscriber: {ex.Message}");
+                throw;
+            }
         }
 
         protected abstract Task ProcessMessageAsync(SagaMessage message);
@@ -88,7 +131,16 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             if (_disposed) return;
 
             _disposed = true;
-            _channel?.Dispose();
+            try
+            {
+                _channel?.Close();
+                _channel?.Dispose();
+                Console.WriteLine($"Subscriber para fila '{_queueName}' liberado.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao liberar subscriber: {ex.Message}");
+            }
         }
     }
 }

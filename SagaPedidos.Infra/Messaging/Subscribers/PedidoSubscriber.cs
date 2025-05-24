@@ -15,15 +15,16 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
         private readonly Publisher _publisher;
 
         public PedidoSubscriber(
-            RabbitMQConnection connection, 
+            RabbitMQConnection connection,
             IPedidoService pedidoService,
             Publisher publisher,
-            string exchangeName = "pedido_exchange",
-            string queueName = "pedido_queue") 
+            string exchangeName = "saga-pedidos",
+            string queueName = "pedido_queue")
             : base(connection, exchangeName, queueName)
         {
-            _pedidoService = pedidoService;
-            _publisher = publisher;
+            _pedidoService = pedidoService ?? throw new ArgumentNullException(nameof(pedidoService));
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            Console.WriteLine($"PedidoSubscriber inicializado para exchange '{exchangeName}' e fila '{queueName}'");
         }
 
         protected override async Task ProcessMessageAsync(SagaMessage message)
@@ -35,9 +36,9 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 case "PedidoCancelado":
                     await ProcessarCancelamentoPedido(message);
                     break;
-                
+
                 default:
-                    Console.WriteLine($"Tipo de mensagem não tratado: {message.Type}");
+                    Console.WriteLine($"Tipo de mensagem não tratado pelo PedidoSubscriber: {message.Type}");
                     break;
             }
         }
@@ -52,10 +53,10 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 if (evento != null)
                 {
                     Console.WriteLine($"Cancelando pedido {evento.PedidoId}. Motivo: {evento.Motivo}");
-                    
+
                     // Chama o serviço para cancelar o pedido
                     var resultado = await _pedidoService.CancelarPedidoAsync(evento.PedidoId, evento.Motivo);
-                    
+
                     if (resultado)
                     {
                         Console.WriteLine($"Pedido {evento.PedidoId} cancelado com sucesso");
@@ -69,6 +70,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao processar cancelamento de pedido: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }

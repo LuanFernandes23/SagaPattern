@@ -2,6 +2,8 @@ using SagaPedidos.Application.Dtos;
 using SagaPedidos.Application.Interfaces;
 using SagaPedidos.Domain.Entities;
 using SagaPedidos.Domain.Interfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace SagaPedidos.Application.Services
 {
@@ -21,8 +23,14 @@ namespace SagaPedidos.Application.Services
             var pedido = await _pedidoRepository.ObterPorIdAsync(dto.PedidoId);
             if (pedido == null) throw new ArgumentException("Pedido não encontrado");
 
-            var enderecoCompleto = $"{dto.Endereco.Rua}, {dto.Endereco.Numero}, {dto.Endereco.Cidade}";
-            var envio = new Envio(pedido, enderecoCompleto);
+            // Criar objeto Endereco a partir do DTO
+            var endereco = new Endereco(
+                dto.Endereco.Rua,
+                dto.Endereco.Numero,
+                dto.Endereco.Cidade
+            );
+
+            var envio = new Envio(pedido, endereco);
             await _envioRepository.AdicionarAsync(envio);
             return envio.Id;
         }
