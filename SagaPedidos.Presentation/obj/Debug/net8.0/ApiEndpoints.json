@@ -1,0 +1,129 @@
+[
+  {
+    "ContainingType": "SagaPedidos.Presentation.Controllers.EnvioController",
+    "Method": "ProcessarEnvio",
+    "RelativePath": "api/envios",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "SagaPedidos.Application.Dtos.ProcessarEnvioDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SagaPedidos.Presentation.Controllers.EnvioController",
+    "Method": "CancelarEnvio",
+    "RelativePath": "api/envios/{envioId}/cancelar",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "envioId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "SagaPedidos.Application.Dtos.CancelarEnvioDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SagaPedidos.Presentation.Controllers.PagamentoController",
+    "Method": "ProcessarPagamento",
+    "RelativePath": "api/pagamentos",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "SagaPedidos.Application.Dtos.ProcessarPagamentoDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SagaPedidos.Presentation.Controllers.PagamentoController",
+    "Method": "EstornarPagamento",
+    "RelativePath": "api/pagamentos/{transacaoId}/estornar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "transacaoId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "SagaPedidos.Application.Dtos.EstornarPagamentoDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SagaPedidos.Presentation.Controllers.PedidoController",
+    "Method": "CriarPedido",
+    "RelativePath": "api/pedidos",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "SagaPedidos.Application.Dtos.CriarPedidoDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SagaPedidos.Presentation.Controllers.PedidoController",
+    "Method": "ConsultarPedido",
+    "RelativePath": "api/pedidos/{pedidoId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "pedidoId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SagaPedidos.Presentation.Controllers.PedidoController",
+    "Method": "CancelarPedido",
+    "RelativePath": "api/pedidos/{pedidoId}/cancelar",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "pedidoId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "SagaPedidos.Application.Dtos.CancelarPedidoDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

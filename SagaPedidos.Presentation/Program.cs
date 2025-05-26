@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using SagaPedidos.Application.EventHandlers;
 using SagaPedidos.Application.Interfaces;
 using SagaPedidos.Application.Sagas;
@@ -25,38 +28,63 @@ namespace SagaPedidos.Presentation
 
             try
             {
-                // Carrega configurações
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                    .Build();
-
-                // Teste rápido de conexão antes de iniciar toda a aplicação
-                var connectionString = configuration["RabbitMQ:ConnectionString"];
-                Console.WriteLine($"Testando conexão com RabbitMQ: {connectionString}");
-
-                // Configura DI
-                var serviceProvider = ConfigureServices(configuration);
-                Console.WriteLine("Configuração de serviços concluída com sucesso.");
-
-                // Inicializa os subscribers
-                InitializeSubscribers(serviceProvider);
-
-                Console.WriteLine("Aplicação iniciada com sucesso! Pressione Ctrl+C para encerrar.");
-
-                var cts = new CancellationTokenSource();
-                Console.CancelKeyPress += (s, e) =>
+                // Criação do builder para o WebApplicationBuilder
+                var builder = WebApplication.CreateBuilder(args);
+                
+                // Adiciona serviços ao container
+                ConfigureServices(builder.Services, builder.Configuration);
+                
+                // Configuração de Swagger
+                builder.Services.AddEndpointsApiExplorer();
+                builder.Services.AddSwaggerGen(c =>
                 {
-                    e.Cancel = true;
-                    cts.Cancel();
-                };
-
-                await Task.Delay(Timeout.Infinite, cts.Token)
-                          .ContinueWith(t => { });
-            }
-            catch (TaskCanceledException)
-            {
-                Console.WriteLine("Aplicação sendo encerrada...");
+                    c.SwaggerDoc("v1", new OpenApiInfo { 
+                        Title = "SagaPedidos API", 
+                        Version = "v1",
+                        Description = "API para gerenciamento de pedidos utilizando o padrão Saga"
+                    });
+                });
+                
+                // Adiciona controllers
+                builder.Services.AddControllers();
+                
+                // Constrói o app
+                var app = builder.Build();
+                
+                // Teste rápido de conexão antes de iniciar toda a aplicação
+                var connectionString = builder.Configuration["RabbitMQ:ConnectionString"];
+                Console.WriteLine($"Testando conexão com RabbitMQ: {connectionString}");
+                
+                // Configure o pipeline de requisição HTTP
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                    app.UseSwagger();
+                    app.UseSwaggerUI(c => 
+                    {
+                        c.SwaggerEndpoint("/swagger/v1/swagger.json", "SagaPedidos API V1");
+                        c.RoutePrefix = "swagger";
+                    });
+                }
+                
+                app.UseHttpsRedirection();
+                app.UseRouting();
+                app.UseAuthorization();
+                app.MapControllers();
+                
+                // Inicializa os subscribers para o RabbitMQ depois que o app está construído
+                using (var scope = app.Services.CreateScope())
+                {
+                    var serviceProvider = scope.ServiceProvider;
+                    InitializeSubscribers(serviceProvider);
+                }
+                
+                Console.WriteLine("Aplicação iniciada com sucesso! A API está rodando...");
+                Console.WriteLine($"Swagger disponível em: https://localhost:5004/swagger");
+                Console.WriteLine($"Swagger também disponível em: http://localhost:5003/swagger");
+                
+                // Inicia o app
+                await app.RunAsync();
             }
             catch (Exception ex)
             {
@@ -75,10 +103,8 @@ namespace SagaPedidos.Presentation
             }
         }
 
-        private static ServiceProvider ConfigureServices(IConfiguration configuration)
+        private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            var services = new ServiceCollection();
-
             // Injetar a configuração diretamente
             services.AddSingleton<IConfiguration>(configuration);
 
@@ -103,51 +129,77 @@ namespace SagaPedidos.Presentation
             Console.WriteLine($"Exchange RabbitMQ: {rabbitExchange}");
 
             services.AddSingleton<RabbitMQConnection>(sp =>
-                new RabbitMQConnection(rabbitConnStr));
+                new RabbitMQConnection(rabbitConnStr ?? "amqp://localhost"));
 
             // Publisher (injeção do nome da exchange)
             services.AddSingleton<Publisher>(sp =>
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
-                return new Publisher(conn, rabbitExchange);
+                return new Publisher(conn, rabbitExchange ?? "saga-pedidos");
             });
             services.AddSingleton<IPublisher>(sp =>
                 sp.GetRequiredService<Publisher>());
 
             // Orchestrator da Saga e Handlers
-            services.AddSingleton<PedidoSagaOrchestrator>();
+            services.AddSingleton<PedidoSagaOrchestrator>(sp => {
+                var publisher = sp.GetRequiredService<IPublisher>();
+                
+                // Criamos um factory para obter o repositório quando necessário
+                IPedidoRepository GetPedidoRepository()
+                {
+                    // Criamos um scope temporário para obter o serviço scoped
+                    using var scope = sp.CreateScope();
+                    return scope.ServiceProvider.GetRequiredService<IPedidoRepository>();
+                }
+                
+                return new PedidoSagaOrchestrator(publisher, GetPedidoRepository());
+            });
+            
             services.AddSingleton<PedidoCriadoHandler>();
 
-            // Subscribers - agora com o nome correto da exchange
+            // Subscribers - adaptados para trabalhar com serviços scoped
             services.AddSingleton<PedidoSubscriber>(sp =>
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
-                var pedidoSrv = sp.GetRequiredService<IPedidoService>();
                 var publisher = sp.GetRequiredService<Publisher>();
-                return new PedidoSubscriber(conn, pedidoSrv, publisher, rabbitExchange, "pedido_queue");
+                
+                // Criamos um scope temporário para inicializar o subscriber
+                using var scope = sp.CreateScope();
+                var pedidoSrv = scope.ServiceProvider.GetRequiredService<IPedidoService>();
+                
+                return new PedidoSubscriber(conn, pedidoSrv, publisher, 
+                    rabbitExchange ?? "saga-pedidos", "pedido_queue");
             });
 
             services.AddSingleton<PagamentoSubscriber>(sp =>
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
-                var pagamentoSrv = sp.GetRequiredService<IPagamentoService>();
                 var publisher = sp.GetRequiredService<Publisher>();
                 var orchestrator = sp.GetRequiredService<PedidoSagaOrchestrator>();
-                return new PagamentoSubscriber(conn, pagamentoSrv, publisher, orchestrator, rabbitExchange, "pagamento_queue");
+                
+                // Criamos um scope temporário para inicializar o subscriber
+                using var scope = sp.CreateScope();
+                var pagamentoSrv = scope.ServiceProvider.GetRequiredService<IPagamentoService>();
+                
+                return new PagamentoSubscriber(conn, pagamentoSrv, publisher, orchestrator,
+                    rabbitExchange ?? "saga-pedidos", "pagamento_queue");
             });
 
             services.AddSingleton<EnvioSubscriber>(sp =>
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
-                var envioSrv = sp.GetRequiredService<IEnvioService>();
                 var orchestrator = sp.GetRequiredService<PedidoSagaOrchestrator>();
-                return new EnvioSubscriber(conn, envioSrv, orchestrator, rabbitExchange, "envio_queue");
+                
+                // Criamos um scope temporário para inicializar o subscriber
+                using var scope = sp.CreateScope();
+                var envioSrv = scope.ServiceProvider.GetRequiredService<IEnvioService>();
+                
+                return new EnvioSubscriber(conn, envioSrv, orchestrator,
+                    rabbitExchange ?? "saga-pedidos", "envio_queue");
             });
-
-            return services.BuildServiceProvider();
         }
 
-        private static void InitializeSubscribers(ServiceProvider serviceProvider)
+        private static void InitializeSubscribers(IServiceProvider serviceProvider)
         {
             try
             {
