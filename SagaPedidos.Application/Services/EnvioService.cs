@@ -23,14 +23,8 @@ namespace SagaPedidos.Application.Services
             var pedido = await _pedidoRepository.ObterPorIdAsync(dto.PedidoId);
             if (pedido == null) throw new ArgumentException("Pedido não encontrado");
 
-            // Criar objeto Endereco a partir do DTO
-            var endereco = new Endereco(
-                dto.Endereco.Rua,
-                dto.Endereco.Numero,
-                dto.Endereco.Cidade
-            );
-
-            var envio = new Envio(pedido, endereco);
+            // Usar a string de endereço diretamente
+            var envio = new Envio(pedido, dto.Endereco);
             await _envioRepository.AdicionarAsync(envio);
             return envio.Id;
         }

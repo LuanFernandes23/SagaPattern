@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SagaPedidos.Presentation")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+40b203f2581b23b94f2ab1c91053d5decba2f64b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0958a2197aa81a235dc8fa4c47862fbef6ef908e")]
 [assembly: System.Reflection.AssemblyProductAttribute("SagaPedidos.Presentation")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SagaPedidos.Presentation")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

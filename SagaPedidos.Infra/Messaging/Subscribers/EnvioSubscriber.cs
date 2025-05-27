@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using SagaPedidos.Application.Dtos;
 using SagaPedidos.Application.Interfaces;
 using SagaPedidos.Application.Sagas;
+// using SagaPedidos.Domain.Entities; // Removido, já que não usamos mais a classe Endereco
 using SagaPedidos.Domain.Events;
 using SagaPedidos.Domain.Messages;
 
@@ -58,19 +59,11 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 {
                     Console.WriteLine($"Processando envio para pedido {evento.PedidoId}");
 
-                    // Converter a string de endereço para o objeto EnderecoDto
-                    var enderecoPartes = evento.EnderecoEntrega.Split(',', 3);
-                    var endereco = new EnderecoDto
-                    {
-                        Rua = enderecoPartes.Length > 0 ? enderecoPartes[0].Trim() : "Rua Exemplo",
-                        Numero = enderecoPartes.Length > 1 ? enderecoPartes[1].Trim() : "123",
-                        Cidade = enderecoPartes.Length > 2 ? enderecoPartes[2].Trim() : "São Paulo"
-                    };
-
+                    // Agora usamos diretamente a string de endereço sem conversões complexas
                     var dto = new ProcessarEnvioDto
                     {
                         PedidoId = evento.PedidoId,
-                        Endereco = endereco
+                        Endereco = evento.EnderecoEntrega // Usa a string diretamente
                     };
 
                     // Simulação: 90% de chance de sucesso no envio

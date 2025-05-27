@@ -28,7 +28,6 @@ namespace SagaPedidos.Application.Services
 
         public async Task<bool> EstornarPagamentoAsync(int transacaoId, string motivo)
         {
-            // Remove a tentativa de usar int.TryParse, pois transacaoId já é um inteiro
             var pagamento = await _pagamentoRepository.ObterPorIdAsync(transacaoId);
             if (pagamento == null) return false;
 

@@ -12,7 +12,7 @@ namespace SagaPedidos.Infra
         public DbSet<Envio> Envios { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
-        public DbSet<Endereco> Enderecos { get; set; }
+        // public DbSet<Endereco> Enderecos { get; set; } // Commented out or removed
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -24,9 +24,7 @@ namespace SagaPedidos.Infra
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.EnderecoEntrega).HasColumnName("EnderecoEntregaStr");
                 entity.Property(p => p.ValorTotal).HasColumnType("decimal(18,2)");
-
-                // Configurar relacionamento com Endereco (opcional)
-                entity.HasOne(p => p.Endereco).WithMany().IsRequired(false);
+                entity.Property(p => p.MotivoFalha).IsRequired(false); // Permite valores nulos
 
                 // Configurar relacionamento com ItemPedido
                 entity.HasMany(p => p.Itens)
@@ -40,9 +38,7 @@ namespace SagaPedidos.Infra
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.EnderecoEntrega).HasColumnName("EnderecoEntregaStr");
-
-                // Configurar relacionamento com Endereco (opcional)
-                entity.HasOne(e => e.Endereco).WithMany().IsRequired(false);
+                entity.Property(e => e.MotivoFalha).IsRequired(false); // Permite valores nulos
             });
 
             // Configurar entidade Pagamento
@@ -50,6 +46,7 @@ namespace SagaPedidos.Infra
             {
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.Valor).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.MotivoFalha).IsRequired(false); // Permite valores nulos
             });
 
             // Configurar entidade ItemPedido
@@ -65,11 +62,6 @@ namespace SagaPedidos.Infra
                 entity.HasKey(c => c.Id);
             });
 
-            // Configurar entidade Endereco
-            modelBuilder.Entity<Endereco>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
         }
     }
 }

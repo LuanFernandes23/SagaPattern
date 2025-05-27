@@ -48,6 +48,18 @@ namespace SagaPedidos.Presentation
                 // Adiciona controllers
                 builder.Services.AddControllers();
                 
+                // Adiciona configuração CORS
+                builder.Services.AddCors(options =>
+                {
+                    options.AddDefaultPolicy(
+                        policy =>
+                        {
+                            policy.AllowAnyOrigin()
+                                  .AllowAnyHeader()
+                                  .AllowAnyMethod();
+                        });
+                });
+                
                 // Constrói o app
                 var app = builder.Build();
                 
@@ -67,6 +79,9 @@ namespace SagaPedidos.Presentation
                     });
                 }
                 
+                // Usar CORS antes de outras middlewares de endpoint
+                app.UseCors();
+                
                 app.UseHttpsRedirection();
                 app.UseRouting();
                 app.UseAuthorization();
@@ -77,6 +92,18 @@ namespace SagaPedidos.Presentation
                 {
                     var serviceProvider = scope.ServiceProvider;
                     InitializeSubscribers(serviceProvider);
+                    
+                    // Verificar se o banco de dados existe, caso contrário criar
+                    try
+                    {
+                        var context = serviceProvider.GetRequiredService<AppDbContext>();
+                        context.Database.EnsureCreated();
+                        Console.WriteLine("Banco de dados verificado/criado com sucesso!");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erro ao verificar/criar banco de dados: {ex.Message}");
+                    }
                 }
                 
                 Console.WriteLine("Aplicação iniciada com sucesso! A API está rodando...");
@@ -112,16 +139,6 @@ namespace SagaPedidos.Presentation
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            // Repositórios
-            services.AddScoped<IPedidoRepository, PedidoRepository>();
-            services.AddScoped<IPagamentoRepository, PagamentoRepository>();
-            services.AddScoped<IEnvioRepository, EnvioRepository>();
-
-            // Serviços de domínio
-            services.AddScoped<IPedidoService, PedidoService>();
-            services.AddScoped<IPagamentoService, PagamentoService>();
-            services.AddScoped<IEnvioService, EnvioService>();
-
             // RabbitMQ
             var rabbitConnStr = configuration["RabbitMQ:ConnectionString"];
             var rabbitExchange = configuration["RabbitMQ:ExchangeName"];
@@ -140,35 +157,59 @@ namespace SagaPedidos.Presentation
             services.AddSingleton<IPublisher>(sp =>
                 sp.GetRequiredService<Publisher>());
 
-            // Orchestrator da Saga e Handlers
-            services.AddSingleton<PedidoSagaOrchestrator>(sp => {
+            // Orchestrator da Saga e Handlers - com factory como parâmetro
+            services.AddSingleton<PedidoSagaOrchestrator>(sp =>
+            {
                 var publisher = sp.GetRequiredService<IPublisher>();
                 
-                // Criamos um factory para obter o repositório quando necessário
-                IPedidoRepository GetPedidoRepository()
+                // Criamos um factory explícito para obter o repositório
+                Func<IPedidoRepository> pedidoRepositoryFactory = () =>
                 {
                     // Criamos um scope temporário para obter o serviço scoped
-                    using var scope = sp.CreateScope();
+                    var scope = sp.CreateScope();
                     return scope.ServiceProvider.GetRequiredService<IPedidoRepository>();
-                }
+                };
                 
-                return new PedidoSagaOrchestrator(publisher, GetPedidoRepository());
+                return new PedidoSagaOrchestrator(publisher, pedidoRepositoryFactory);
             });
             
             services.AddSingleton<PedidoCriadoHandler>();
+
+            // Repositórios - Agora com injeção de Publisher e Handler
+            services.AddScoped<IPedidoRepository>(sp => 
+            {
+                var context = sp.GetRequiredService<AppDbContext>();
+                var publisher = sp.GetRequiredService<IPublisher>();
+                var handler = sp.GetRequiredService<PedidoCriadoHandler>();
+                return new PedidoRepository(context, publisher, handler);
+            });
+            
+            services.AddScoped<IPagamentoRepository, PagamentoRepository>();
+            services.AddScoped<IEnvioRepository, EnvioRepository>();
+
+            // Serviços de domínio
+            services.AddScoped<IPedidoService, PedidoService>();
+            services.AddScoped<IPagamentoService, PagamentoService>();
+            services.AddScoped<IEnvioService, EnvioService>();
 
             // Subscribers - adaptados para trabalhar com serviços scoped
             services.AddSingleton<PedidoSubscriber>(sp =>
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
                 var publisher = sp.GetRequiredService<Publisher>();
+                var handler = sp.GetRequiredService<PedidoCriadoHandler>();
                 
                 // Criamos um scope temporário para inicializar o subscriber
                 using var scope = sp.CreateScope();
                 var pedidoSrv = scope.ServiceProvider.GetRequiredService<IPedidoService>();
                 
-                return new PedidoSubscriber(conn, pedidoSrv, publisher, 
-                    rabbitExchange ?? "saga-pedidos", "pedido_queue");
+                return new PedidoSubscriber(
+                    conn,
+                    pedidoSrv,
+                    publisher,
+                    handler,
+                    rabbitExchange ?? "saga-pedidos",
+                    "pedido_queue");
             });
 
             services.AddSingleton<PagamentoSubscriber>(sp =>

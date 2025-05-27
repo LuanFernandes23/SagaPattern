@@ -11,13 +11,15 @@ namespace SagaPedidos.Domain.Events
         public int ClienteId { get; private set; }
         public decimal ValorTotal { get; private set; }
         public string EnderecoEntrega { get; private set; }
+        public string MetodoPagamento { get; private set; }
 
-        public PedidoCriadoEvent(int pedidoId, int clienteId, decimal valorTotal, string enderecoEntrega)
+        public PedidoCriadoEvent(int pedidoId, int clienteId, decimal valorTotal, string enderecoEntrega, string metodoPagamento = "cartao")
         {
             PedidoId = pedidoId;
             ClienteId = clienteId;
             ValorTotal = valorTotal;
             EnderecoEntrega = enderecoEntrega;
+            MetodoPagamento = metodoPagamento;
         }
     }
 

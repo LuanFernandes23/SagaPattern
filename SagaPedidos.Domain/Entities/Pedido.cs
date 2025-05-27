@@ -10,8 +10,7 @@ namespace SagaPedidos.Domain.Entities
         public DateTime DataCriacao { get; private set; }
         public StatusPedido Status { get; private set; }
         public decimal ValorTotal { get; private set; }
-        public Endereco Endereco { get; private set; }
-        public string EnderecoEntrega { get; private set; } // Mantido para compatibilidade
+        public string EnderecoEntrega { get; private set; } 
         public List<ItemPedido> Itens { get; private set; }
         public string MotivoFalha { get; private set; }
 
@@ -22,24 +21,12 @@ namespace SagaPedidos.Domain.Entities
         public Pedido(Cliente cliente, string enderecoEntrega)
         {
             ClienteId = cliente.Id;
-            EnderecoEntrega = enderecoEntrega;
-            Endereco = Endereco.FromString(enderecoEntrega);
+            EnderecoEntrega = enderecoEntrega; // Directly assign the string
             DataCriacao = DateTime.UtcNow;
             Status = StatusPedido.Criado;
             Itens = new List<ItemPedido>();
             ValorTotal = 0;
-        }
-
-        // Construtor recebendo objeto Endereco
-        public Pedido(Cliente cliente, Endereco endereco)
-        {
-            ClienteId = cliente.Id;
-            Endereco = endereco;
-            EnderecoEntrega = endereco.ToString();
-            DataCriacao = DateTime.UtcNow;
-            Status = StatusPedido.Criado;
-            Itens = new List<ItemPedido>();
-            ValorTotal = 0;
+            MotivoFalha = ""; // Inicializa com string vazia para não causar problema com SQL
         }
 
         public void AdicionarItem(ItemPedido item)

@@ -300,24 +300,6 @@
         },
         "additionalProperties": false
       },
-      "EnderecoDto": {
-        "type": "object",
-        "properties": {
-          "rua": {
-            "type": "string",
-            "nullable": true
-          },
-          "numero": {
-            "type": "string",
-            "nullable": true
-          },
-          "cidade": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "EstornarPagamentoDto": {
         "type": "object",
         "properties": {
@@ -362,7 +344,8 @@
             "format": "int32"
           },
           "endereco": {
-            "$ref": "#/components/schemas/EnderecoDto"
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

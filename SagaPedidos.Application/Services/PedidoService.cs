@@ -21,7 +21,7 @@ namespace SagaPedidos.Application.Services
             foreach (var item in dto.Itens)
             {
                 pedido.AdicionarItem(new ItemPedido(
-                    produtoId: item.ProdutoId.ToString(), // Convertendo para string
+                    produtoId: item.ProdutoId.ToString(),
                     nomeProduto: $"Produto {item.ProdutoId}",
                     quantidade: item.Quantidade,
                     precoUnitario: item.Preco

@@ -39,31 +39,6 @@ namespace SagaPedidos.Infra.Migrations
                     b.ToTable("Clientes");
                 });
 
-            modelBuilder.Entity("SagaPedidos.Domain.Entities.Endereco", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Cidade")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Rua")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Enderecos");
-                });
-
             modelBuilder.Entity("SagaPedidos.Domain.Entities.Envio", b =>
                 {
                     b.Property<int>("Id")
@@ -86,9 +61,6 @@ namespace SagaPedidos.Infra.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("EnderecoEntregaStr");
 
-                    b.Property<int>("EnderecoId")
-                        .HasColumnType("int");
-
                     b.Property<string>("MotivoFalha")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -100,8 +72,6 @@ namespace SagaPedidos.Infra.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EnderecoId");
 
                     b.ToTable("Envios");
                 });
@@ -194,9 +164,6 @@ namespace SagaPedidos.Infra.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("EnderecoEntregaStr");
 
-                    b.Property<int>("EnderecoId")
-                        .HasColumnType("int");
-
                     b.Property<string>("MotivoFalha")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -209,18 +176,7 @@ namespace SagaPedidos.Infra.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EnderecoId");
-
                     b.ToTable("Pedidos");
-                });
-
-            modelBuilder.Entity("SagaPedidos.Domain.Entities.Envio", b =>
-                {
-                    b.HasOne("SagaPedidos.Domain.Entities.Endereco", "Endereco")
-                        .WithMany()
-                        .HasForeignKey("EnderecoId");
-
-                    b.Navigation("Endereco");
                 });
 
             modelBuilder.Entity("SagaPedidos.Domain.Entities.ItemPedido", b =>
@@ -230,15 +186,6 @@ namespace SagaPedidos.Infra.Migrations
                         .HasForeignKey("PedidoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("SagaPedidos.Domain.Entities.Pedido", b =>
-                {
-                    b.HasOne("SagaPedidos.Domain.Entities.Endereco", "Endereco")
-                        .WithMany()
-                        .HasForeignKey("EnderecoId");
-
-                    b.Navigation("Endereco");
                 });
 
             modelBuilder.Entity("SagaPedidos.Domain.Entities.Pedido", b =>

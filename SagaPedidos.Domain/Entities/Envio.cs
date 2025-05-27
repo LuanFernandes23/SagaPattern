@@ -6,8 +6,7 @@ namespace SagaPedidos.Domain.Entities
     {
         public int Id { get; private set; }
         public int PedidoId { get; private set; }
-        public Endereco Endereco { get; private set; }
-        public string EnderecoEntrega { get; private set; } // Mantido para compatibilidade
+        public string EnderecoEntrega { get; private set; } 
         public StatusEnvio Status { get; private set; }
         public DateTime DataCriacao { get; private set; }
         public DateTime? DataEnvio { get; private set; }
@@ -21,18 +20,7 @@ namespace SagaPedidos.Domain.Entities
         public Envio(Pedido pedido, string enderecoEntrega)
         {
             PedidoId = pedido.Id;
-            EnderecoEntrega = enderecoEntrega;
-            Endereco = Endereco.FromString(enderecoEntrega);
-            Status = StatusEnvio.Pendente;
-            DataCriacao = DateTime.UtcNow;
-        }
-
-        // Construtor recebendo objeto Endereco
-        public Envio(Pedido pedido, Endereco endereco)
-        {
-            PedidoId = pedido.Id;
-            Endereco = endereco;
-            EnderecoEntrega = endereco.ToString();
+            EnderecoEntrega = enderecoEntrega; // Directly assign the string
             Status = StatusEnvio.Pendente;
             DataCriacao = DateTime.UtcNow;
         }

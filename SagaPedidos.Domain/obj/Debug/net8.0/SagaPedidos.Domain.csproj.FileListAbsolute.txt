@@ -10,3 +10,15 @@ C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.pdb
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\ref\SagaPedidos.Domain.dll
 C:\Users\Interfocus\source\repos\SagaPedidos\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.sourcelink.json
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\bin\Debug\net8.0\SagaPedidos.Domain.deps.json
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\bin\Debug\net8.0\SagaPedidos.Domain.dll
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\bin\Debug\net8.0\SagaPedidos.Domain.pdb
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.AssemblyInfoInputs.cache
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.AssemblyInfo.cs
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.csproj.CoreCompileInputs.cache
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.sourcelink.json
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.dll
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\refint\SagaPedidos.Domain.dll
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\SagaPedidos.Domain.pdb
+C:\Users\User\Downloads\SagaPattern\SagaPedidos.Domain\obj\Debug\net8.0\ref\SagaPedidos.Domain.dll
