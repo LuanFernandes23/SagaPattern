@@ -49,7 +49,10 @@ namespace SagaPedidos.Infra.Repositories
                 
                 Console.WriteLine($"Publicando evento PedidoCriado para o pedido {pedido.Id}...");
                 
-                // Apenas publicar na fila, removendo a chamada direta ao handler
+                // Enviar para o handler direto
+                _pedidoCriadoHandler.Handle(evento);
+                
+                // E também publicar na fila para outros serviços
                 var sagaMessage = new SagaMessage("PedidoCriado", evento);
                 sagaMessage.AddHeader("PedidoId", pedido.Id.ToString());
                 _publisher.Publish(sagaMessage);

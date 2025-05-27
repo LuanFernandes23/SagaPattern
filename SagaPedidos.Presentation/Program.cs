@@ -197,19 +197,13 @@ namespace SagaPedidos.Presentation
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
                 var publisher = sp.GetRequiredService<Publisher>();
-                var handler = sp.GetRequiredService<PedidoCriadoHandler>();
                 
                 // Criamos um scope temporário para inicializar o subscriber
                 using var scope = sp.CreateScope();
                 var pedidoSrv = scope.ServiceProvider.GetRequiredService<IPedidoService>();
                 
-                return new PedidoSubscriber(
-                    conn,
-                    pedidoSrv,
-                    publisher,
-                    handler,
-                    rabbitExchange ?? "saga-pedidos",
-                    "pedido_queue");
+                return new PedidoSubscriber(conn, pedidoSrv, publisher, 
+                    rabbitExchange ?? "saga-pedidos", "pedido_queue");
             });
 
             services.AddSingleton<PagamentoSubscriber>(sp =>
