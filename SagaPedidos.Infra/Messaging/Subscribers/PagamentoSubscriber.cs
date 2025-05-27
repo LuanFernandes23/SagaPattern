@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using SagaPedidos.Application.Dtos;
 using SagaPedidos.Application.Interfaces;
 using SagaPedidos.Application.Sagas;
@@ -9,52 +10,47 @@ using SagaPedidos.Domain.Messages;
 
 namespace SagaPedidos.Infra.Messaging.Subscribers
 {
-    /// <summary>
-    /// Subscriber que processa mensagens relacionadas a Pagamentos
-    /// </summary>
     public class PagamentoSubscriber : Subscriber
     {
-        private readonly IPagamentoService _pagamentoService;
         private readonly Publisher _publisher;
         private readonly PedidoSagaOrchestrator _sagaOrchestrator;
         private readonly Random _random = new Random();
 
         public PagamentoSubscriber(
             RabbitMQConnection connection,
-            IPagamentoService pagamentoService,
+            IServiceProvider serviceProvider,
             Publisher publisher,
             PedidoSagaOrchestrator sagaOrchestrator,
             string exchangeName = "saga-pedidos",
             string queueName = "pagamento_queue")
-            : base(connection, exchangeName, queueName)
+            : base(connection, serviceProvider, exchangeName, queueName)
         {
-            _pagamentoService = pagamentoService ?? throw new ArgumentNullException(nameof(pagamentoService));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _sagaOrchestrator = sagaOrchestrator ?? throw new ArgumentNullException(nameof(sagaOrchestrator));
-            Console.WriteLine($"PagamentoSubscriber inicializado para exchange '{exchangeName}' e fila '{queueName}'");
+            Console.WriteLine("PagamentoSubscriber inicializado para exchange '" + exchangeName + "' e fila '" + queueName + "'");
         }
 
-        protected override async Task ProcessMessageAsync(SagaMessage message)
+        protected override async Task ProcessMessageAsync(SagaMessage message, IServiceProvider serviceProvider)
         {
-            Console.WriteLine($"PagamentoSubscriber recebeu mensagem do tipo: {message.Type}");
+            Console.WriteLine("PagamentoSubscriber recebeu mensagem do tipo: " + message.Type);
 
             switch (message.Type)
             {
                 case "ProcessarPagamento":
-                    await ProcessarPagamento(message);
+                    await ProcessarPagamento(message, serviceProvider);
                     break;
 
                 case "EstornarPagamento":
-                    await EstornarPagamento(message);
+                    await EstornarPagamentoAsync(message, serviceProvider);
                     break;
 
                 default:
-                    Console.WriteLine($"Tipo de mensagem não tratado pelo PagamentoSubscriber: {message.Type}");
+                    Console.WriteLine("Tipo de mensagem não tratado pelo PagamentoSubscriber: " + message.Type);
                     break;
             }
         }
 
-        private async Task ProcessarPagamento(SagaMessage message)
+        private async Task ProcessarPagamento(SagaMessage message, IServiceProvider serviceProvider)
         {
             try
             {
@@ -63,7 +59,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
 
                 if (evento != null)
                 {
-                    Console.WriteLine($"Processando pagamento para pedido {evento.PedidoId}. Valor: {evento.Valor}");
+                    Console.WriteLine("Processando pagamento para pedido " + evento.PedidoId + ". Valor: " + evento.Valor);
 
                     var dto = new ProcessarPagamentoDto
                     {
@@ -72,13 +68,16 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                         MetodoPagamento = evento.MetodoPagamento
                     };
 
+                    // Obtém o serviço do scope atual
+                    var pagamentoService = serviceProvider.GetRequiredService<IPagamentoService>();
+                    
                     // Processa o pagamento
-                    var transacaoId = await _pagamentoService.ProcessarPagamentoAsync(dto);
+                    var transacaoId = await pagamentoService.ProcessarPagamentoAsync(dto);
 
                     // Simulação: 80% de chance de aprovação do pagamento
                     if (_random.Next(100) < 80)
                     {
-                        Console.WriteLine($"Pagamento do pedido {evento.PedidoId} aprovado. Transação: {transacaoId}");
+                        Console.WriteLine("Pagamento do pedido " + evento.PedidoId + " aprovado. Transação: " + transacaoId);
 
                         // Pagamento aprovado
                         var aprovadoEvent = new PagamentoAprovadoEvent(evento.PedidoId);
@@ -86,7 +85,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                     }
                     else
                     {
-                        Console.WriteLine($"Pagamento do pedido {evento.PedidoId} recusado");
+                        Console.WriteLine("Pagamento do pedido " + evento.PedidoId + " recusado");
 
                         // Pagamento recusado
                         var recusadoEvent = new PagamentoRecusadoEvent(evento.PedidoId, "Pagamento recusado pela operadora do cartão");
@@ -96,13 +95,12 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao processar pagamento: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine("Erro ao processar pagamento: " + ex.Message);
 
                 // Em caso de erro, notifica o orquestrador para tratar a falha
                 if (message.Headers.TryGetValue("PedidoId", out var pedidoIdStr) && int.TryParse(pedidoIdStr, out var pedidoId))
                 {
-                    var recusadoEvent = new PagamentoRecusadoEvent(pedidoId, $"Erro ao processar pagamento: {ex.Message}");
+                    var recusadoEvent = new PagamentoRecusadoEvent(pedidoId, "Erro ao processar pagamento: " + ex.Message);
                     _sagaOrchestrator.TratarFalhaPagamento(recusadoEvent);
                 }
 
@@ -110,7 +108,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             }
         }
 
-        private async Task EstornarPagamento(SagaMessage message)
+        private async Task EstornarPagamentoAsync(SagaMessage message, IServiceProvider serviceProvider)
         {
             try
             {
@@ -123,28 +121,30 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                         ? motivoValue
                         : "Estorno solicitado pela compensação da saga";
 
-                    Console.WriteLine($"Estornando pagamento para pedido {evento.PedidoId}. Motivo: {motivo}");
+                    Console.WriteLine("Estornando pagamento para pedido " + evento.PedidoId + ". Motivo: " + motivo);
 
                     // Na implementação real, buscaria a transacaoId de um repositório
                     int transacaoId = evento.PedidoId;
 
+                    // Obtém o serviço do scope atual
+                    var pagamentoService = serviceProvider.GetRequiredService<IPagamentoService>();
+                    
                     // Estorna o pagamento
-                    var resultado = await _pagamentoService.EstornarPagamentoAsync(transacaoId, motivo);
+                    var resultado = await pagamentoService.EstornarPagamentoAsync(transacaoId, motivo);
 
                     if (resultado)
                     {
-                        Console.WriteLine($"Pagamento do pedido {evento.PedidoId} estornado com sucesso");
+                        Console.WriteLine("Pagamento do pedido " + evento.PedidoId + " estornado com sucesso");
                     }
                     else
                     {
-                        Console.WriteLine($"Falha ao estornar pagamento do pedido {evento.PedidoId}");
+                        Console.WriteLine("Falha ao estornar pagamento do pedido " + evento.PedidoId);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao estornar pagamento: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine("Erro ao estornar pagamento: " + ex.Message);
                 throw;
             }
         }

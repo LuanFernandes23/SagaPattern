@@ -5,6 +5,7 @@ using System;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SagaPedidos.Infra.Messaging.Subscribers
 {
@@ -14,11 +15,13 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
         private readonly IModel _channel;
         private readonly string _queueName;
         private readonly string _exchangeName;
+        protected readonly IServiceProvider _serviceProvider;
         private bool _disposed;
 
-        protected Subscriber(RabbitMQConnection connection, string exchangeName, string queueName)
+        protected Subscriber(RabbitMQConnection connection, IServiceProvider serviceProvider, string exchangeName, string queueName)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _exchangeName = exchangeName ?? throw new ArgumentNullException(nameof(exchangeName));
             _queueName = queueName ?? throw new ArgumentNullException(nameof(queueName));
 
@@ -89,6 +92,8 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
 
                 consumer.Received += async (model, ea) =>
                 {
+                    // Criamos um novo scope para cada mensagem processada
+                    using var scope = _serviceProvider.CreateScope();
                     try
                     {
                         var body = ea.Body.ToArray();
@@ -97,7 +102,8 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
 
                         var message = JsonSerializer.Deserialize<SagaMessage>(messageContent);
 
-                        await ProcessMessageAsync(message);
+                        // Passamos o scope.ServiceProvider para o método de processamento
+                        await ProcessMessageAsync(message, scope.ServiceProvider);
 
                         _channel.BasicAck(ea.DeliveryTag, multiple: false);
                         Console.WriteLine("Processamento concluído, confirmação enviada.");
@@ -105,8 +111,9 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                     catch (Exception ex)
                     {
                         // Em caso de falha, rejeitar a mensagem e possivelmente enfileirá-la novamente
-                        _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
-                        Console.WriteLine($"Erro ao processar mensagem: {ex.Message}");
+                        _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: false); // Alterado para não reencaminhar para evitar loop infinito
+                        Console.WriteLine("Erro ao processar mensagem: " + ex.Message);
+                        Console.WriteLine("Stack trace: " + ex.StackTrace);
                     }
                 };
 
@@ -124,7 +131,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             }
         }
 
-        protected abstract Task ProcessMessageAsync(SagaMessage message);
+        protected abstract Task ProcessMessageAsync(SagaMessage message, IServiceProvider serviceProvider);
 
         public void Dispose()
         {

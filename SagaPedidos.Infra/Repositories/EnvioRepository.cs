@@ -17,6 +17,11 @@ namespace SagaPedidos.Infra.Repositories
             return await _context.Envios.FirstOrDefaultAsync(e => e.Id == id);
         }
 
+        public async Task<Envio?> ObterPorPedidoIdAsync(int pedidoId)
+        {
+            return await _context.Envios.FirstOrDefaultAsync(e => e.PedidoId == pedidoId);
+        }
+
         public async Task AdicionarAsync(Envio envio)
         {
             await _context.Envios.AddAsync(envio);

@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using SagaPedidos.Application.Dtos;
 using SagaPedidos.Application.Interfaces;
 using SagaPedidos.Domain.Events;
@@ -11,30 +12,28 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
     // Subscriber que processa mensagens relacionadas a Pedidos
     public class PedidoSubscriber : Subscriber
     {
-        private readonly IPedidoService _pedidoService;
         private readonly Publisher _publisher;
 
         public PedidoSubscriber(
             RabbitMQConnection connection,
-            IPedidoService pedidoService,
+            IServiceProvider serviceProvider,
             Publisher publisher,
             string exchangeName = "saga-pedidos",
             string queueName = "pedido_queue")
-            : base(connection, exchangeName, queueName)
+            : base(connection, serviceProvider, exchangeName, queueName)
         {
-            _pedidoService = pedidoService ?? throw new ArgumentNullException(nameof(pedidoService));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             Console.WriteLine($"PedidoSubscriber inicializado para exchange '{exchangeName}' e fila '{queueName}'");
         }
 
-        protected override async Task ProcessMessageAsync(SagaMessage message)
+        protected override async Task ProcessMessageAsync(SagaMessage message, IServiceProvider serviceProvider)
         {
             Console.WriteLine($"PedidoSubscriber recebeu mensagem do tipo: {message.Type}");
 
             switch (message.Type)
             {
                 case "PedidoCancelado":
-                    await ProcessarCancelamentoPedido(message);
+                    await ProcessarCancelamentoPedido(message, serviceProvider);
                     break;
 
                 default:
@@ -43,7 +42,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             }
         }
 
-        private async Task ProcessarCancelamentoPedido(SagaMessage message)
+        private async Task ProcessarCancelamentoPedido(SagaMessage message, IServiceProvider serviceProvider)
         {
             try
             {
@@ -54,8 +53,11 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                 {
                     Console.WriteLine($"Cancelando pedido {evento.PedidoId}. Motivo: {evento.Motivo}");
 
+                    // Obtém o serviço do scope atual
+                    var pedidoService = serviceProvider.GetRequiredService<IPedidoService>();
+
                     // Chama o serviço para cancelar o pedido
-                    var resultado = await _pedidoService.CancelarPedidoAsync(evento.PedidoId, evento.Motivo);
+                    var resultado = await pedidoService.CancelarPedidoAsync(evento.PedidoId, evento.Motivo);
 
                     if (resultado)
                     {
@@ -69,8 +71,8 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao processar cancelamento de pedido: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine("Erro ao processar cancelamento de pedido: " + ex.Message);
+                // Removida a linha de log do stack trace que estava causando problemas
                 throw;
             }
         }

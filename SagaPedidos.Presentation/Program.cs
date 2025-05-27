@@ -30,24 +30,25 @@ namespace SagaPedidos.Presentation
             {
                 // Criação do builder para o WebApplicationBuilder
                 var builder = WebApplication.CreateBuilder(args);
-                
+
                 // Adiciona serviços ao container
                 ConfigureServices(builder.Services, builder.Configuration);
-                
+
                 // Configuração de Swagger
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(c =>
                 {
-                    c.SwaggerDoc("v1", new OpenApiInfo { 
-                        Title = "SagaPedidos API", 
+                    c.SwaggerDoc("v1", new OpenApiInfo
+                    {
+                        Title = "SagaPedidos API",
                         Version = "v1",
                         Description = "API para gerenciamento de pedidos utilizando o padrão Saga"
                     });
                 });
-                
+
                 // Adiciona controllers
                 builder.Services.AddControllers();
-                
+
                 // Adiciona configuração CORS
                 builder.Services.AddCors(options =>
                 {
@@ -59,40 +60,40 @@ namespace SagaPedidos.Presentation
                                   .AllowAnyMethod();
                         });
                 });
-                
+
                 // Constrói o app
                 var app = builder.Build();
-                
+
                 // Teste rápido de conexão antes de iniciar toda a aplicação
                 var connectionString = builder.Configuration["RabbitMQ:ConnectionString"];
-                Console.WriteLine($"Testando conexão com RabbitMQ: {connectionString}");
-                
+                Console.WriteLine("Testando conexão com RabbitMQ: " + connectionString);
+
                 // Configure o pipeline de requisição HTTP
                 if (app.Environment.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
                     app.UseSwagger();
-                    app.UseSwaggerUI(c => 
+                    app.UseSwaggerUI(c =>
                     {
                         c.SwaggerEndpoint("/swagger/v1/swagger.json", "SagaPedidos API V1");
                         c.RoutePrefix = "swagger";
                     });
                 }
-                
+
                 // Usar CORS antes de outras middlewares de endpoint
                 app.UseCors();
-                
+
                 app.UseHttpsRedirection();
                 app.UseRouting();
                 app.UseAuthorization();
                 app.MapControllers();
-                
+
                 // Inicializa os subscribers para o RabbitMQ depois que o app está construído
                 using (var scope = app.Services.CreateScope())
                 {
                     var serviceProvider = scope.ServiceProvider;
                     InitializeSubscribers(serviceProvider);
-                    
+
                     // Verificar se o banco de dados existe, caso contrário criar
                     try
                     {
@@ -102,25 +103,25 @@ namespace SagaPedidos.Presentation
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Erro ao verificar/criar banco de dados: {ex.Message}");
+                        Console.WriteLine("Erro ao verificar/criar banco de dados: " + ex.Message);
                     }
                 }
-                
+
                 Console.WriteLine("Aplicação iniciada com sucesso! A API está rodando...");
-                Console.WriteLine($"Swagger disponível em: https://localhost:5004/swagger");
-                Console.WriteLine($"Swagger também disponível em: http://localhost:5003/swagger");
-                
+                Console.WriteLine("Swagger disponível em: https://localhost:5004/swagger");
+                Console.WriteLine("Swagger também disponível em: http://localhost:5003/swagger");
+
                 // Inicia o app
                 await app.RunAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro durante a execução da aplicação: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                Console.WriteLine("Erro durante a execução da aplicação: " + ex.Message);
+                Console.WriteLine("Stack Trace: " + ex.StackTrace);
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    Console.WriteLine($"Inner Exception Stack Trace: {ex.InnerException.StackTrace}");
+                    Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+                    Console.WriteLine("Inner Exception Stack Trace: " + ex.InnerException.StackTrace);
                 }
             }
             finally
@@ -142,8 +143,8 @@ namespace SagaPedidos.Presentation
             // RabbitMQ
             var rabbitConnStr = configuration["RabbitMQ:ConnectionString"];
             var rabbitExchange = configuration["RabbitMQ:ExchangeName"];
-            Console.WriteLine($"String de conexão RabbitMQ: {rabbitConnStr}");
-            Console.WriteLine($"Exchange RabbitMQ: {rabbitExchange}");
+            Console.WriteLine("String de conexão RabbitMQ: " + rabbitConnStr);
+            Console.WriteLine("Exchange RabbitMQ: " + rabbitExchange);
 
             services.AddSingleton<RabbitMQConnection>(sp =>
                 new RabbitMQConnection(rabbitConnStr ?? "amqp://localhost"));
@@ -161,7 +162,7 @@ namespace SagaPedidos.Presentation
             services.AddSingleton<PedidoSagaOrchestrator>(sp =>
             {
                 var publisher = sp.GetRequiredService<IPublisher>();
-                
+
                 // Criamos um factory explícito para obter o repositório
                 Func<IPedidoRepository> pedidoRepositoryFactory = () =>
                 {
@@ -169,21 +170,21 @@ namespace SagaPedidos.Presentation
                     var scope = sp.CreateScope();
                     return scope.ServiceProvider.GetRequiredService<IPedidoRepository>();
                 };
-                
+
                 return new PedidoSagaOrchestrator(publisher, pedidoRepositoryFactory);
             });
-            
+
             services.AddSingleton<PedidoCriadoHandler>();
 
             // Repositórios - Agora com injeção de Publisher e Handler
-            services.AddScoped<IPedidoRepository>(sp => 
+            services.AddScoped<IPedidoRepository>(sp =>
             {
                 var context = sp.GetRequiredService<AppDbContext>();
                 var publisher = sp.GetRequiredService<IPublisher>();
                 var handler = sp.GetRequiredService<PedidoCriadoHandler>();
                 return new PedidoRepository(context, publisher, handler);
             });
-            
+
             services.AddScoped<IPagamentoRepository, PagamentoRepository>();
             services.AddScoped<IEnvioRepository, EnvioRepository>();
 
@@ -192,17 +193,14 @@ namespace SagaPedidos.Presentation
             services.AddScoped<IPagamentoService, PagamentoService>();
             services.AddScoped<IEnvioService, EnvioService>();
 
-            // Subscribers - adaptados para trabalhar com serviços scoped
+            // Subscribers - adaptados para trabalhar com IServiceProvider
             services.AddSingleton<PedidoSubscriber>(sp =>
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
                 var publisher = sp.GetRequiredService<Publisher>();
-                
-                // Criamos um scope temporário para inicializar o subscriber
-                using var scope = sp.CreateScope();
-                var pedidoSrv = scope.ServiceProvider.GetRequiredService<IPedidoService>();
-                
-                return new PedidoSubscriber(conn, pedidoSrv, publisher, 
+
+                // Agora passamos o IServiceProvider para o subscriber criar scopes por mensagem
+                return new PedidoSubscriber(conn, sp, publisher,
                     rabbitExchange ?? "saga-pedidos", "pedido_queue");
             });
 
@@ -211,12 +209,9 @@ namespace SagaPedidos.Presentation
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
                 var publisher = sp.GetRequiredService<Publisher>();
                 var orchestrator = sp.GetRequiredService<PedidoSagaOrchestrator>();
-                
-                // Criamos um scope temporário para inicializar o subscriber
-                using var scope = sp.CreateScope();
-                var pagamentoSrv = scope.ServiceProvider.GetRequiredService<IPagamentoService>();
-                
-                return new PagamentoSubscriber(conn, pagamentoSrv, publisher, orchestrator,
+
+                // Agora passamos o IServiceProvider para o subscriber criar scopes por mensagem
+                return new PagamentoSubscriber(conn, sp, publisher, orchestrator,
                     rabbitExchange ?? "saga-pedidos", "pagamento_queue");
             });
 
@@ -224,12 +219,9 @@ namespace SagaPedidos.Presentation
             {
                 var conn = sp.GetRequiredService<RabbitMQConnection>();
                 var orchestrator = sp.GetRequiredService<PedidoSagaOrchestrator>();
-                
-                // Criamos um scope temporário para inicializar o subscriber
-                using var scope = sp.CreateScope();
-                var envioSrv = scope.ServiceProvider.GetRequiredService<IEnvioService>();
-                
-                return new EnvioSubscriber(conn, envioSrv, orchestrator,
+
+                // Agora passamos o IServiceProvider para o subscriber criar scopes por mensagem
+                return new EnvioSubscriber(conn, sp, orchestrator,
                     rabbitExchange ?? "saga-pedidos", "envio_queue");
             });
         }
@@ -244,7 +236,7 @@ namespace SagaPedidos.Presentation
                 var configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 var exchangeName = configuration["RabbitMQ:ExchangeName"];
 
-                Console.WriteLine($"Exchange configurada: {exchangeName}");
+                Console.WriteLine("Exchange configurada: " + exchangeName);
 
                 var pedidoSub = serviceProvider.GetRequiredService<PedidoSubscriber>();
                 var pagamentoSub = serviceProvider.GetRequiredService<PagamentoSubscriber>();
@@ -263,8 +255,7 @@ namespace SagaPedidos.Presentation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao iniciar subscribers: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine("Erro ao iniciar subscribers: " + ex.Message);
                 throw;
             }
         }
