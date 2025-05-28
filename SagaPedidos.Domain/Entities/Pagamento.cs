@@ -9,7 +9,6 @@ namespace SagaPedidos.Domain.Entities
         public decimal Valor { get; private set; }
         public string FormaPagamento { get; private set; }
         public StatusPagamento Status { get; private set; }
-        public string IdTransacao { get; private set; }
         public DateTime DataProcessamento { get; private set; }
         public string MotivoFalha { get; private set; }
 

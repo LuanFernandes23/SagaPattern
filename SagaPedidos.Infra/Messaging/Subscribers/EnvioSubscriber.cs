@@ -58,7 +58,7 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
                     var dto = new ProcessarEnvioDto
                     {
                         PedidoId = evento.PedidoId,
-                        Endereco = evento.EnderecoEntrega // Usa a string diretamente
+                        Endereco = evento.EnderecoEntrega
                     };
 
                     // Obtém o serviço do scope atual

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SagaPedidos.Infra")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+24846ae678d82835b0c80b19351999c3c32f0b4a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6d8e8cb80e58a9d177a7a644340bedeacf0b5267")]
 [assembly: System.Reflection.AssemblyProductAttribute("SagaPedidos.Infra")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SagaPedidos.Infra")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

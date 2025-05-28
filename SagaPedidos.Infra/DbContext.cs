@@ -12,7 +12,6 @@ namespace SagaPedidos.Infra
         public DbSet<Envio> Envios { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
-        // public DbSet<Endereco> Enderecos { get; set; } // Commented out or removed
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

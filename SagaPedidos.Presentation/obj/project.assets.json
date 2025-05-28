@@ -3816,23 +3816,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Interfocus\\.nuget\\packages\\": {},
+    "C:\\Users\\User\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Presentation\\SagaPedidos.Presentation.csproj",
+      "projectUniqueName": "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Presentation\\SagaPedidos.Presentation.csproj",
       "projectName": "SagaPedidos.Presentation",
-      "projectPath": "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Presentation\\SagaPedidos.Presentation.csproj",
-      "packagesPath": "C:\\Users\\Interfocus\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Presentation\\obj\\",
+      "projectPath": "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Presentation\\SagaPedidos.Presentation.csproj",
+      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Presentation\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Interfocus\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3847,14 +3847,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Application\\SagaPedidos.Application.csproj": {
-              "projectPath": "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Application\\SagaPedidos.Application.csproj"
+            "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Application\\SagaPedidos.Application.csproj": {
+              "projectPath": "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Application\\SagaPedidos.Application.csproj"
             },
-            "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Domain\\SagaPedidos.Domain.csproj": {
-              "projectPath": "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Domain\\SagaPedidos.Domain.csproj"
+            "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Domain\\SagaPedidos.Domain.csproj": {
+              "projectPath": "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Domain\\SagaPedidos.Domain.csproj"
             },
-            "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Infra\\SagaPedidos.Infra.csproj": {
-              "projectPath": "C:\\Users\\Interfocus\\Downloads\\SagaPattern\\SagaPedidos.Infra\\SagaPedidos.Infra.csproj"
+            "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Infra\\SagaPedidos.Infra.csproj": {
+              "projectPath": "C:\\Users\\User\\Downloads\\SagaPattern\\SagaPedidos.Infra\\SagaPedidos.Infra.csproj"
             }
           }
         }

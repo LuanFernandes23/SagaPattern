@@ -303,10 +303,6 @@
       "EstornarPagamentoDto": {
         "type": "object",
         "properties": {
-          "transacaoId": {
-            "type": "string",
-            "nullable": true
-          },
           "pedidoId": {
             "type": "integer",
             "format": "int32"

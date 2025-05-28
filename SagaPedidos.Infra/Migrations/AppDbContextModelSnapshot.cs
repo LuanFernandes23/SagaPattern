@@ -122,10 +122,6 @@ namespace SagaPedidos.Infra.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdTransacao")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("MotivoFalha")
                         .HasColumnType("nvarchar(max)");
 
