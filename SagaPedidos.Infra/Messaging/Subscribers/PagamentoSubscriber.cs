@@ -123,7 +123,6 @@ namespace SagaPedidos.Infra.Messaging.Subscribers
 
                     Console.WriteLine("Estornando pagamento para pedido " + evento.PedidoId + ". Motivo: " + motivo);
 
-                    // Na implementação real, buscaria a transacaoId de um repositório
                     int transacaoId = evento.PedidoId;
 
                     // Obtém o serviço do scope atual

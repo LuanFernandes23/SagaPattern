@@ -21,12 +21,12 @@ namespace SagaPedidos.Domain.Entities
         public Pedido(Cliente cliente, string enderecoEntrega)
         {
             ClienteId = cliente.Id;
-            EnderecoEntrega = enderecoEntrega; // Directly assign the string
+            EnderecoEntrega = enderecoEntrega;
             DataCriacao = DateTime.UtcNow;
             Status = StatusPedido.Criado;
             Itens = new List<ItemPedido>();
             ValorTotal = 0;
-            MotivoFalha = ""; // Inicializa com string vazia para não causar problema com SQL
+            MotivoFalha = "";
         }
 
         public void AdicionarItem(ItemPedido item)

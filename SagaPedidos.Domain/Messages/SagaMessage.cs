@@ -21,7 +21,7 @@ namespace SagaPedidos.Domain.Messages
             CreatedAt = DateTime.UtcNow;
         }
 
-        public SagaMessage(string type, object payload) : this()
+        public SagaMessage(string type, object payload) : this() 
         {
             Type = type;
             Payload = payload;

@@ -46,7 +46,7 @@ namespace SagaPedidos.Infra.Messaging
                             RequestedHeartbeat = TimeSpan.FromSeconds(30)
                         };
 
-                        // Se utilizando amqps:// precisa configurar SSL
+                        // precisa configurar SSL
                         if (_connectionString.StartsWith("amqps://", StringComparison.OrdinalIgnoreCase))
                         {
                             Console.WriteLine("Configurando SSL para conexão segura...");

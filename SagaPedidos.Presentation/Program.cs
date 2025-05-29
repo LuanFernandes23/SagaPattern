@@ -163,7 +163,7 @@ namespace SagaPedidos.Presentation
             {
                 var publisher = sp.GetRequiredService<IPublisher>();
 
-                // Criamos um factory explícito para obter o repositório
+                // Factory explícito para obter o repositório
                 Func<IPedidoRepository> pedidoRepositoryFactory = () =>
                 {
                     // Criamos um scope temporário para obter o serviço scoped
